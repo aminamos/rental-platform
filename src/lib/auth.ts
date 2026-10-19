@@ -63,9 +63,10 @@ export function publicUser(user: User) {
   };
 }
 
-export function userById(userId: string | null): User | null {
+export async function userById(userId: string | null): Promise<User | null> {
   if (!userId) return null;
-  return readStore().users.find((u) => u.id === userId) || null;
+  const store = await readStore();
+  return store.users.find((u) => u.id === userId) || null;
 }
 
 export async function getCurrentUser(): Promise<User | null> {
@@ -73,7 +74,7 @@ export async function getCurrentUser(): Promise<User | null> {
   return userById(verifySessionToken(store.get(SESSION_COOKIE)?.value));
 }
 
-export function getUserFromRequest(req: Request): User | null {
+export async function getUserFromRequest(req: Request): Promise<User | null> {
   const header = req.headers.get("cookie") || "";
   const match = header.match(new RegExp(`(?:^|;\\s*)${SESSION_COOKIE}=([^;]+)`));
   const token = match ? decodeURIComponent(match[1]) : undefined;

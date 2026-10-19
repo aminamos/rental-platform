@@ -22,9 +22,9 @@ export async function POST(req: Request) {
   if (event.type === "checkout.session.completed") {
     const session = event.data.object;
     if (session.payment_status === "paid") {
-      const bySession = markStripeSessionPaid(session.id);
+      const bySession = await markStripeSessionPaid(session.id);
       const paymentId = session.metadata?.paymentId;
-      if (!bySession && paymentId) markPaymentSucceeded(paymentId);
+      if (!bySession && paymentId) await markPaymentSucceeded(paymentId);
     }
   }
   return NextResponse.json({ received: true });

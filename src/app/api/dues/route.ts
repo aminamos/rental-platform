@@ -5,23 +5,23 @@ import { newId, readStore, writeStore } from "@/lib/store";
 export const runtime = "nodejs";
 
 export async function GET(req: Request) {
-  const user = getUserFromRequest(req);
+  const user = await getUserFromRequest(req);
   if (!user) return NextResponse.json({ error: "Not signed in." }, { status: 401 });
-  const store = readStore();
+  const store = await readStore();
   const dues =
     user.role === "landlord" ? store.dues : store.dues.filter((d) => d.tenantId === user.id);
   return NextResponse.json({ dues });
 }
 
 export async function POST(req: Request) {
-  const user = getUserFromRequest(req);
+  const user = await getUserFromRequest(req);
   if (!user || user.role !== "landlord") {
     return NextResponse.json({ error: "Landlord sign-in required." }, { status: 403 });
   }
   const body = (await req.json().catch(() => null)) as
     | { tenantId?: string; label?: string; amountDollars?: number; dueDate?: string }
     | null;
-  const store = readStore();
+  const store = await readStore();
   const tenant = store.users.find((u) => u.id === body?.tenantId && u.role === "tenant");
   const amount = Number(body?.amountDollars);
   if (!tenant || !tenant.unitId) {
@@ -40,6 +40,6 @@ export async function POST(req: Request) {
     status: "unpaid" as const,
   };
   store.dues.push(due);
-  writeStore(store);
+  await writeStore(store);
   return NextResponse.json({ due }, { status: 201 });
 }

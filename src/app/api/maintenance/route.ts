@@ -8,10 +8,10 @@ const CATEGORIES = ["plumbing", "electrical", "appliance", "heating_cooling", "o
 const PRIORITIES = ["low", "normal", "high", "urgent"] as const;
 
 export async function GET(req: Request) {
-  const user = getUserFromRequest(req);
+  const user = await getUserFromRequest(req);
   if (!user) return NextResponse.json({ error: "Not signed in." }, { status: 401 });
   const archived = new URL(req.url).searchParams.get("archived");
-  const store = readStore();
+  const store = await readStore();
   let items =
     user.role === "landlord"
       ? store.maintenance
@@ -23,7 +23,7 @@ export async function GET(req: Request) {
 }
 
 export async function POST(req: Request) {
-  const user = getUserFromRequest(req);
+  const user = await getUserFromRequest(req);
   if (!user || user.role !== "tenant") {
     return NextResponse.json({ error: "Tenant sign-in required." }, { status: 403 });
   }
@@ -56,8 +56,8 @@ export async function POST(req: Request) {
     createdAt: now,
     updatedAt: now,
   };
-  const store = readStore();
+  const store = await readStore();
   store.maintenance.push(item);
-  writeStore(store);
+  await writeStore(store);
   return NextResponse.json({ maintenance: item }, { status: 201 });
 }

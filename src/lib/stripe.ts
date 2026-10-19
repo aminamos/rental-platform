@@ -7,7 +7,10 @@ export function stripeConfigured(): boolean {
 
 export function getStripe(): Stripe | null {
   if (!stripeConfigured()) return null;
-  return new Stripe(process.env.STRIPE_SECRET_KEY as string);
+  // Fetch-based client so the SDK also runs on Cloudflare Workers.
+  return new Stripe(process.env.STRIPE_SECRET_KEY as string, {
+    httpClient: Stripe.createFetchHttpClient(),
+  });
 }
 
 export function appUrl(): string {

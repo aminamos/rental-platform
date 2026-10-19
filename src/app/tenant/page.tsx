@@ -17,7 +17,7 @@ export default async function TenantPage({
   if (user.role !== "tenant") redirect("/dashboard");
   const { payment } = await searchParams;
 
-  const store = readStore();
+  const store = await readStore();
   const unit = store.units.find((u) => u.id === user.unitId);
   const dues = store.dues.filter((d) => d.tenantId === user.id);
   const payments = [...store.payments.filter((p) => p.tenantId === user.id)].reverse();

@@ -20,7 +20,7 @@ export default async function PaySuccessPage({
     try {
       const session = await stripe.checkout.sessions.retrieve(session_id);
       if (session.payment_status === "paid") {
-        confirmed = markStripeSessionPaid(session.id);
+        confirmed = await markStripeSessionPaid(session.id);
       }
     } catch {
       confirmed = false;

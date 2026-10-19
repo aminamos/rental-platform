@@ -7,14 +7,14 @@ import type { Verification } from "@/lib/types";
 export const runtime = "nodejs";
 
 export async function POST(req: Request) {
-  const user = getUserFromRequest(req);
+  const user = await getUserFromRequest(req);
   if (!user || user.role !== "tenant") {
     return NextResponse.json({ error: "Tenant sign-in required." }, { status: 403 });
   }
   const body = (await req.json().catch(() => null)) as
     | { documentType?: string; documentName?: string }
     | null;
-  const store = readStore();
+  const store = await readStore();
   const tenant = store.users.find((u) => u.id === user.id);
   if (!tenant) return NextResponse.json({ error: "Account not found." }, { status: 404 });
 
@@ -44,7 +44,7 @@ export async function POST(req: Request) {
       };
       store.verifications.push(verification);
       tenant.identityStatus = "requires_input";
-      writeStore(store);
+      await writeStore(store);
       return NextResponse.json(
         { url: session.url, manual: false, verification },
         { status: 201 }
@@ -73,6 +73,6 @@ export async function POST(req: Request) {
   };
   store.verifications.push(verification);
   tenant.identityStatus = "pending_review";
-  writeStore(store);
+  await writeStore(store);
   return NextResponse.json({ manual: true, verification }, { status: 201 });
 }

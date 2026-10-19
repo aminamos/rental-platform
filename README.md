@@ -11,8 +11,9 @@ A single-landlord MVP for:
   triages them (open → in progress → resolved) and archives them instead of deleting them.
   Tenants can also archive their own resolved requests.
 
-Built with Next.js (App Router, TypeScript) and the Stripe Node SDK. Demo data lives in a
-local JSON file so the MVP runs with no database to set up.
+Built with Next.js (App Router, TypeScript) and the Stripe Node SDK. Demo data lives in
+Cloudflare D1 when deployed (a local store in development), so there is no separate
+database server to run.
 
 ## Quick start
 
@@ -70,11 +71,34 @@ npm run start      # production server on http://localhost:3000
 npm run typecheck  # tsc --noEmit
 ```
 
+## Deployment (Cloudflare Workers)
+
+Deployed at https://rental-platform.a-8c6.workers.dev
+
+The app runs on Cloudflare Workers via [OpenNext](https://opennext.js.org/cloudflare),
+with a D1 database bound as `DB` (see `wrangler.toml`):
+
+```bash
+npx wrangler d1 create rental-platform   # put the returned id in wrangler.toml
+openssl rand -hex 32 | npx wrangler secret put SESSION_SECRET
+NEXT_PUBLIC_APP_URL=https://<your-worker>.workers.dev npm run deploy
+```
+
+`npm run deploy` runs `opennextjs-cloudflare build` then `opennextjs-cloudflare deploy`.
+Set optional Stripe test secrets the same way (`STRIPE_SECRET_KEY`,
+`STRIPE_WEBHOOK_SECRET`) and redeploy to enable live test-mode checkout and identity.
+Reset demo data with:
+
+```bash
+npx wrangler d1 execute rental-platform --remote --command "DELETE FROM app_store WHERE k='main'"
+```
+
 ## Data and limitations
 
-- State is stored in `data/store.json` (git-ignored) and reseeds with demo data if deleted.
-  Set `DATA_FILE` to point at a different file. Replace this with a real database before
-  production use — the JSON store is single-process and has no migrations or backups.
+- State is stored as a single JSON blob: Cloudflare D1 (`app_store` table) on Workers,
+  or a local D1/file store in development. It reseeds with demo data when empty. Replace
+  this with proper tables before production use — the blob store has no migrations,
+  no concurrent-writer protection, and no backups beyond D1 itself.
 - Auth is a signed, httpOnly session cookie with scrypt-hashed demo passwords. Replace the
   demo accounts and set a strong `SESSION_SECRET` before deploying.
 - Manual identity review records only a document type and file name; no document image is

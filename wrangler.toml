@@ -1,0 +1,20 @@
+name = "rental-platform"
+main = ".open-next/worker.js"
+compatibility_date = "2025-08-01"
+compatibility_flags = ["nodejs_compat"]
+workers_dev = true
+
+[vars]
+NEXT_PUBLIC_APP_URL = "https://rental-platform.a-8c6.workers.dev"
+
+[observability]
+enabled = true
+
+[assets]
+directory = ".open-next/assets"
+binding = "ASSETS"
+
+[[d1_databases]]
+binding = "DB"
+database_name = "rental-platform"
+database_id = "431bee96-621f-4be1-9320-b5fc49a63a6b"

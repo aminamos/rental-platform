@@ -18,7 +18,7 @@ function mapStatus(raw: string): IdentityStatus {
 export default async function IdentityReturnPage() {
   const user = await getCurrentUser();
   if (!user) redirect("/login");
-  const store = readStore();
+  const store = await readStore();
   const latest = [...store.verifications]
     .reverse()
     .find((v) => v.tenantId === user.id && v.provider === "stripe" && v.stripeId);
@@ -34,7 +34,7 @@ export default async function IdentityReturnPage() {
       latest.status = status;
       const tenant = store.users.find((u) => u.id === user.id);
       if (tenant) tenant.identityStatus = status;
-      writeStore(store);
+      await writeStore(store);
     } catch {
       // Keep the stored status if Stripe cannot be reached right now.
     }

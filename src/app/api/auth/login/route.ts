@@ -14,8 +14,8 @@ export async function POST(req: Request) {
   if (!email || !password) {
     return NextResponse.json({ error: "Email and password are required." }, { status: 400 });
   }
-  const user = readStore().users.find((u) => u.email.toLowerCase() === email);
-  if (!user || !verifyPassword(password, user.passwordHash)) {
+  const user = (await readStore()).users.find((u) => u.email.toLowerCase() === email);
+  if (!user || !(await verifyPassword(password, user.passwordHash))) {
     return NextResponse.json({ error: "Invalid email or password." }, { status: 401 });
   }
   const res = NextResponse.json({ user: publicUser(user) });

@@ -8,13 +8,13 @@ export const runtime = "nodejs";
 const STATUSES: MaintenanceStatus[] = ["open", "in_progress", "resolved"];
 
 export async function PATCH(req: Request, { params }: { params: Promise<{ id: string }> }) {
-  const user = getUserFromRequest(req);
+  const user = await getUserFromRequest(req);
   if (!user) return NextResponse.json({ error: "Not signed in." }, { status: 401 });
   const { id } = await params;
   const body = (await req.json().catch(() => null)) as
     | { status?: string; archived?: boolean }
     | null;
-  const store = readStore();
+  const store = await readStore();
   const item = store.maintenance.find((m) => m.id === id);
   if (!item) return NextResponse.json({ error: "Request not found." }, { status: 404 });
 
@@ -44,6 +44,6 @@ export async function PATCH(req: Request, { params }: { params: Promise<{ id: st
     }
   }
   item.updatedAt = new Date().toISOString();
-  writeStore(store);
+  await writeStore(store);
   return NextResponse.json({ maintenance: item });
 }

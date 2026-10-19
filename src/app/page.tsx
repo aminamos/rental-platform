@@ -49,9 +49,8 @@ export default function HomePage() {
           </tbody>
         </table>
         <p className="small muted">
-          Demo data is stored in a local JSON file (<code>data/store.json</code>, git-ignored) and
-          reseeds itself if that file is deleted. Change the demo passwords and storage layer
-          before any real deployment.
+          Demo data reseeds itself when storage is empty (Cloudflare D1 on Workers, a local
+          store in development). Change the demo passwords before any real deployment.
         </p>
       </div>
     </>

@@ -13,7 +13,7 @@ export default async function DashboardPage() {
   if (!user) redirect("/login");
   if (user.role !== "landlord") redirect("/tenant");
 
-  const store = readStore();
+  const store = await readStore();
   const tenantName = (id: string) => store.users.find((u) => u.id === id)?.name || id;
   const unitLabel = (id: string) => store.units.find((u) => u.id === id)?.label || id;
   const tenants = store.users.filter((u) => u.role === "tenant");
@@ -36,7 +36,7 @@ export default async function DashboardPage() {
       <p className="muted">
         {stripeConfigured()
           ? "Stripe is configured (payments and identity use your Stripe test keys)."
-          : "Stripe keys are not configured, so demo checkout and manual identity review are active. Add test keys in .env.local to use Stripe."}
+          : "Stripe keys are not configured, so demo checkout and manual identity review are active. Add test keys as environment secrets to use Stripe."}
       </p>
       <div className="stat-rows">
         <div className="stat"><span className="value">{formatMoney(unpaidTotal)}</span><span className="label">Outstanding rent</span></div>

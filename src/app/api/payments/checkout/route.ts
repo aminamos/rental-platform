@@ -7,12 +7,12 @@ import type { Payment } from "@/lib/types";
 export const runtime = "nodejs";
 
 export async function POST(req: Request) {
-  const user = getUserFromRequest(req);
+  const user = await getUserFromRequest(req);
   if (!user || user.role !== "tenant") {
     return NextResponse.json({ error: "Tenant sign-in required." }, { status: 403 });
   }
   const body = (await req.json().catch(() => null)) as { dueId?: string } | null;
-  const store = readStore();
+  const store = await readStore();
   const due = store.dues.find((d) => d.id === body?.dueId && d.tenantId === user.id);
   if (!due) return NextResponse.json({ error: "Charge not found." }, { status: 404 });
   if (due.status === "paid") {
@@ -53,7 +53,7 @@ export async function POST(req: Request) {
       payment.mode = "stripe";
       payment.stripeSessionId = session.id;
       store.payments.push(payment);
-      writeStore(store);
+      await writeStore(store);
       return NextResponse.json({ url: session.url, mock: false, paymentId: payment.id });
     } catch {
       return NextResponse.json(
@@ -65,7 +65,7 @@ export async function POST(req: Request) {
 
   // No Stripe key configured: demo checkout so the flow stays testable locally.
   store.payments.push(payment);
-  writeStore(store);
+  await writeStore(store);
   return NextResponse.json({
     url: `/tenant/pay/mock?paymentId=${payment.id}`,
     mock: true,
