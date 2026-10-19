@@ -1,10 +1,11 @@
 "use client";
 
+import Link from "next/link";
 import { useState } from "react";
 
 export default function LoginPage() {
-  const [email, setEmail] = useState("tenant@demo.local");
-  const [password, setPassword] = useState("demo1234");
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
   const [error, setError] = useState("");
   const [busy, setBusy] = useState(false);
 
@@ -32,11 +33,14 @@ export default function LoginPage() {
   return (
     <div style={{ maxWidth: 480 }}>
       <h1>Sign in</h1>
-      <p className="muted">Use a demo account, or your own once you replace the seed data.</p>
+      <p className="muted">Use the email and password for your account.</p>
       {error && <div className="error">{error}</div>}
       <form onSubmit={submit} className="panel">
         <label htmlFor="email">Email</label>
-        <input id="email" type="email" value={email} onChange={(e) => setEmail(e.target.value)} required />
+        <input
+          id="email" type="email" value={email} placeholder="you@example.com"
+          onChange={(e) => setEmail(e.target.value)} required
+        />
         <label htmlFor="password">Password</label>
         <input
           id="password"
@@ -51,13 +55,9 @@ export default function LoginPage() {
           </button>
         </p>
       </form>
-      <p className="actions">
-        <button type="button" className="btn secondary small-btn" onClick={() => setEmail("landlord@demo.local")}>
-          Fill landlord demo
-        </button>
-        <button type="button" className="btn secondary small-btn" onClick={() => setEmail("tenant@demo.local")}>
-          Fill tenant demo
-        </button>
+      <p className="small muted">
+        New install? <Link href="/setup">Create the landlord account</Link>. Tenants: your landlord
+        creates your account and shares a temporary password with you.
       </p>
     </div>
   );

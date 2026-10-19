@@ -63,7 +63,7 @@ export async function POST(req: Request) {
     }
   }
 
-  // No Stripe key configured: demo checkout so the flow stays testable locally.
+  // No Stripe key configured: test checkout so the flow stays testable without moving money.
   store.payments.push(payment);
   await writeStore(store);
   return NextResponse.json({

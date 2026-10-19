@@ -71,7 +71,7 @@ export default async function TenantPage({
                 {payments.map((p) => (
                   <tr key={p.id}>
                     <td>{formatMoney(p.amountCents)}</td>
-                    <td>{p.mode === "stripe" ? "Stripe" : "Demo checkout"}</td>
+                    <td>{p.mode === "stripe" ? "Stripe" : "Test checkout"}</td>
                     <td><span className={badgeClass(p.status)}>{pretty(p.status)}</span></td>
                     <td>{formatDate(p.paidAt || p.createdAt)}</td>
                   </tr>

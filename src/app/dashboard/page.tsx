@@ -4,7 +4,13 @@ import { formatDate, formatMoney } from "@/lib/format";
 import { readStore } from "@/lib/store";
 import { stripeConfigured } from "@/lib/stripe";
 import { badgeClass, pretty } from "@/components/status";
-import { AddDueForm, MaintenanceControls, ReviewButtons } from "./DashboardActions";
+import {
+  AddDueForm,
+  AddTenantForm,
+  AddUnitForm,
+  MaintenanceControls,
+  ReviewButtons,
+} from "./DashboardActions";
 
 export const dynamic = "force-dynamic";
 
@@ -36,13 +42,39 @@ export default async function DashboardPage() {
       <p className="muted">
         {stripeConfigured()
           ? "Stripe is configured (payments and identity use your Stripe test keys)."
-          : "Stripe keys are not configured, so demo checkout and manual identity review are active. Add test keys as environment secrets to use Stripe."}
+          : "Stripe keys are not configured, so test checkout (no card is charged) and manual identity review are active. Add Stripe keys as environment secrets before collecting real rent."}
       </p>
       <div className="stat-rows">
         <div className="stat"><span className="value">{formatMoney(unpaidTotal)}</span><span className="label">Outstanding rent</span></div>
         <div className="stat"><span className="value">{formatMoney(collected)}</span><span className="label">Collected</span></div>
         <div className="stat"><span className="value">{openMaintenance.length}</span><span className="label">Open maintenance</span></div>
         <div className="stat"><span className="value">{pendingVerifications.length}</span><span className="label">Identity checks waiting</span></div>
+      </div>
+
+      <h2>Units and tenants</h2>
+      <div className="panel">
+        <table>
+          <thead><tr><th>Unit</th><th>Address</th><th>Monthly rent</th><th>Tenant</th><th>Identity</th></tr></thead>
+          <tbody>
+            {store.units.map((unit) => {
+              const tenant = tenants.find((t) => t.unitId === unit.id);
+              return (
+                <tr key={unit.id}>
+                  <td>{unit.label}</td>
+                  <td>{unit.address}</td>
+                  <td>{formatMoney(unit.monthlyRentCents)}</td>
+                  <td>{tenant ? <>{tenant.name}<br /><span className="small muted">{tenant.email}</span></> : <span className="muted">Vacant</span>}</td>
+                  <td>{tenant ? <span className={badgeClass(tenant.identityStatus)}>{pretty(tenant.identityStatus)}</span> : "—"}</td>
+                </tr>
+              );
+            })}
+            {store.units.length === 0 && <tr><td colSpan={5} className="muted">No units yet. Add your first unit below.</td></tr>}
+          </tbody>
+        </table>
+        <h3>Add a unit</h3>
+        <AddUnitForm />
+        <h3>Create a tenant account</h3>
+        <AddTenantForm units={store.units.map((u) => ({ id: u.id, label: u.label }))} />
       </div>
 
       <h2>Charges</h2>
@@ -63,7 +95,11 @@ export default async function DashboardPage() {
           </tbody>
         </table>
         <h3>Add a charge</h3>
-        <AddDueForm tenants={tenants.map((t) => ({ id: t.id, name: t.name, unitLabel: unitLabel(t.unitId || "") }))} />
+        {tenants.length === 0 ? (
+          <p className="muted">Create a tenant account above before adding charges.</p>
+        ) : (
+          <AddDueForm tenants={tenants.map((t) => ({ id: t.id, name: t.name, unitLabel: unitLabel(t.unitId || "") }))} />
+        )}
       </div>
 
       <h2>Payments</h2>
@@ -75,7 +111,7 @@ export default async function DashboardPage() {
               <tr key={p.id}>
                 <td>{tenantName(p.tenantId)}</td>
                 <td>{formatMoney(p.amountCents)}</td>
-                <td>{p.mode === "stripe" ? "Stripe" : "Demo checkout"}</td>
+                <td>{p.mode === "stripe" ? "Stripe" : "Test checkout"}</td>
                 <td><span className={badgeClass(p.status)}>{pretty(p.status)}</span></td>
                 <td>{formatDate(p.paidAt || p.createdAt)}</td>
               </tr>

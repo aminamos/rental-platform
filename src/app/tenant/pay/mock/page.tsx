@@ -27,7 +27,7 @@ function MockCheckout() {
 
   return (
     <div style={{ maxWidth: 560 }}>
-      <h1>Demo checkout</h1>
+      <h1>Test checkout</h1>
       <div className="panel wash">
         <p>
           Stripe keys are not configured in this environment, so this page stands in for Stripe

@@ -11,9 +11,9 @@ A single-landlord MVP for:
   triages them (open → in progress → resolved) and archives them instead of deleting them.
   Tenants can also archive their own resolved requests.
 
-Built with Next.js (App Router, TypeScript) and the Stripe Node SDK. Demo data lives in
+Built with Next.js (App Router, TypeScript) and the Stripe Node SDK. App data lives in
 Cloudflare D1 when deployed (a local store in development), so there is no separate
-database server to run.
+database server to run. A fresh install starts empty — there are no pre-created accounts.
 
 ## Quick start
 
@@ -24,16 +24,22 @@ npm run dev
 
 Open http://localhost:3000 in your browser.
 
-### Demo accounts
+### First-run setup
 
-| Role | Email | Password |
-| --- | --- | --- |
-| Landlord | `landlord@demo.local` | `demo1234` |
-| Tenant (Unit 4B) | `tenant@demo.local` | `demo1234` |
-| Tenant (Unit 2A) | `jamie@demo.local` | `demo1234` |
+There are no default accounts. On a new install:
 
-With no Stripe keys configured, “Pay now” opens a clearly labeled demo checkout that charges
-nothing, and identity verification uses manual landlord review. Every flow is testable that way.
+1. Open the app and choose **Create the landlord account** (or go to `/setup`). Enter your
+   name, email, and a password of at least 8 characters. Setup stops working once a
+   landlord account exists.
+2. In the landlord dashboard, add a unit, then create each tenant account with a temporary
+   password and share it with the tenant.
+3. Add rent charges from the dashboard. Tenants sign in to pay, verify identity, and file
+   maintenance requests.
+
+With no Stripe keys configured, “Pay now” opens a clearly labeled test checkout that charges
+nothing, and identity verification uses manual landlord review. Every flow is testable that
+way. Do not give tenants access until real Stripe keys are configured — test checkout marks
+charges paid without moving money.
 
 ## Stripe test mode (optional, recommended)
 
@@ -87,7 +93,7 @@ NEXT_PUBLIC_APP_URL=https://<your-worker>.workers.dev npm run deploy
 `npm run deploy` runs `opennextjs-cloudflare build` then `opennextjs-cloudflare deploy`.
 Set optional Stripe test secrets the same way (`STRIPE_SECRET_KEY`,
 `STRIPE_WEBHOOK_SECRET`) and redeploy to enable live test-mode checkout and identity.
-Reset demo data with:
+Reset all app data (back to a fresh, empty install) with:
 
 ```bash
 npx wrangler d1 execute rental-platform --remote --command "DELETE FROM app_store WHERE k='main'"
@@ -96,22 +102,25 @@ npx wrangler d1 execute rental-platform --remote --command "DELETE FROM app_stor
 ## Data and limitations
 
 - State is stored as a single JSON blob: Cloudflare D1 (`app_store` table) on Workers,
-  or a local D1/file store in development. It reseeds with demo data when empty. Replace
-  this with proper tables before production use — the blob store has no migrations,
-  no concurrent-writer protection, and no backups beyond D1 itself.
-- Auth is a signed, httpOnly session cookie with PBKDF2-hashed demo passwords. Replace the
-  demo accounts and set a strong `SESSION_SECRET` before deploying.
+  or a local D1/file store in development. A new install starts empty. Replace this with
+  proper tables before scaling — the blob store has no migrations, no concurrent-writer
+  protection, and no backups beyond D1 itself.
+- Auth is a signed, httpOnly session cookie with PBKDF2-hashed passwords. Set a strong
+  `SESSION_SECRET` before deploying. Tenant accounts start with a landlord-chosen temporary
+  password; there is no self-serve password reset yet.
 - Manual identity review records only a document type and file name; no document image is
   uploaded or stored. Use Stripe Identity (or a compliant provider) for real verification.
-- One landlord, fixed demo units. Multi-landlord accounts, leases, late fees, autopay,
-  and email/SMS notifications are out of scope for this MVP.
+- One landlord. Multi-landlord accounts, leases, late fees, autopay, and email/SMS
+  notifications are out of scope for this MVP.
 
 ## API summary
 
+- `POST /api/auth/setup` — first-run landlord creation (disabled after setup)
 - `POST /api/auth/login`, `POST /api/auth/logout`, `GET /api/auth/me`
+- `POST /api/units`, `POST /api/tenants` — landlord creates units and tenant accounts
 - `GET|POST /api/dues` — list charges; landlord creates a charge
-- `POST /api/payments/checkout` — Stripe Checkout session (or demo checkout without keys)
-- `POST /api/payments/mock-complete` — completes a demo-checkout payment
+- `POST /api/payments/checkout` — Stripe Checkout session (or test checkout without keys)
+- `POST /api/payments/mock-complete` — completes a test-checkout payment
 - `POST /api/payments/webhook` — Stripe webhook receiver (signature-verified)
 - `POST /api/identity/start` — Stripe Identity session (or manual submission)
 - `POST /api/identity/review` — landlord approves or rejects a verification
