@@ -3,8 +3,10 @@ node_modules/
 .open-next/
 .wrangler/
 out/
-.env
-.env*.local
+.env*
+!.env.example
+.dev.vars
+.dev.vars.*
 data/store.json
 *.tsbuildinfo
 .DS_Store

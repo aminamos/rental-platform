@@ -99,7 +99,7 @@ npx wrangler d1 execute rental-platform --remote --command "DELETE FROM app_stor
   or a local D1/file store in development. It reseeds with demo data when empty. Replace
   this with proper tables before production use — the blob store has no migrations,
   no concurrent-writer protection, and no backups beyond D1 itself.
-- Auth is a signed, httpOnly session cookie with scrypt-hashed demo passwords. Replace the
+- Auth is a signed, httpOnly session cookie with PBKDF2-hashed demo passwords. Replace the
   demo accounts and set a strong `SESSION_SECRET` before deploying.
 - Manual identity review records only a document type and file name; no document image is
   uploaded or stored. Use Stripe Identity (or a compliant provider) for real verification.
@@ -117,3 +117,9 @@ npx wrangler d1 execute rental-platform --remote --command "DELETE FROM app_stor
 - `POST /api/identity/review` — landlord approves or rejects a verification
 - `GET|POST /api/maintenance`, `PATCH /api/maintenance/[id]` — list/create, then
   update status or archive/restore
+
+## License
+
+MIT — see [LICENSE](LICENSE). Bring your own Stripe keys; none are included in this repo.
+`.env*` and `.dev.vars*` files are git-ignored (except `.env.example`, which only holds
+placeholders), and deployed secrets belong in `wrangler secret put`, never in git.
